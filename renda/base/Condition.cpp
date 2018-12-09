@@ -12,7 +12,7 @@ bool renda::Condition::waitForSeconds(double seconds)
     int64_t nanSeconds = static_cast<int64_t >(seconds * kNanoSecondsPerSecond);
 
     abstime.tv_sec += static_cast<time_t >((nanSeconds + abstime.tv_nsec) / kNanoSecondsPerSecond);
-    abstime.tv_nsec = static_cast<long > ((nanSeconds + abstiabstimeme.tv_nsec) % kNanoSecondsPerSecond);
+    abstime.tv_nsec = static_cast<long > ((nanSeconds + abstime.tv_nsec) % kNanoSecondsPerSecond);
 
     Mutex::UnassignGuard guard(mutex_);
     MCHECK(pthread_cond_timedwait(&pcond_, mutex_.getPthreadMutex(), &abstime));
