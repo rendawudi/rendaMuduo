@@ -14,6 +14,7 @@ namespace renda
 {
 namespace details
 {
+
 const int kSmallBuffer = 4000;
 
 const int kLargeBuffer = kSmallBuffer * 1000;
@@ -109,6 +110,127 @@ private:
 
 };
 }
+
+class Fmt;
+
+class LogStream : noncopyable
+{
+    typedef LogStream& self;
+public:
+    typedef details::FixedBuffer<details::kSmallBuffer> Buffer;
+
+    self operator <<(bool v)
+    {
+       buffer_.append(v ? "1" : "0" , 1);
+        return *this;
+    }
+
+    self operator <<(int x)
+    {
+        formatInteger(x);
+        return *this
+    }
+    self operator <<(uint);
+    self operator <<(short);
+    self operator <<(ushort);
+    self operator <<(long);
+    self operator <<(ulong);
+    self operator <<(long long);
+    self operator <<(unsigned long long);
+
+    self operator <<(const void *);
+
+    self operator <<(float v)
+    {
+        *this << static_cast<double >(v);
+    }
+
+    self operator <<(double);
+
+    self operator <<(const char* str)
+    {
+        if (str)
+            buffer_.append(str, sizeof(str));
+        else
+            buffer_.append("NULL char Ptr", 14);
+    }
+
+    self operator <<(const unsigned char* str)
+    {
+        *this << reinterpret_cast<const char*>(str);
+    }
+
+    self operator <<(const string& str)
+    {
+        buffer_.append(str.c_str(), str.size());
+        return *this;
+    }
+
+    self operator <<(const StringPiece& str)
+    {
+        buffer_.append(str.data(), str.size());
+        return *this;
+    }
+
+    self operator <<(const Buffer& buffer)
+    {
+        *this << buffer.toStringPiece();
+        return *this;
+    }
+
+    self operator <<(LogStream& s, const Fmt& fmt)
+    {
+        s.append(fmt.data(), fmt.length());
+        return s;
+    }
+
+    void append(const char* data, int len)
+    {
+        buffer_.append(data, len);
+    }
+
+    const Buffer& buffer()
+    {
+        return buffer_;
+    }
+
+    void resetBuffer()
+    {
+        buffer_.reset();
+    }
+
+private:
+    void staticCheck();
+    template <typename T>
+    void formatInteger(T);
+
+    static const int kMaxNumberSize = 32;
+
+    Buffer buffer_;
+};
+
+class Fmt
+{
+public:
+    template <typename T>
+    Fmt(const char* fmt, T val);
+
+    const char* data()
+    {
+        return buf_;
+    }
+
+    int length()
+    {
+        return len_;
+    }
+
+private:
+    char buf_[32];
+    int len_;
+};
+
 }
+
 
 #endif //RENDA_LOGSTREAM_H
