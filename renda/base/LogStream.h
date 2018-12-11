@@ -19,6 +19,9 @@ const int kSmallBuffer = 4000;
 
 const int kLargeBuffer = kSmallBuffer * 1000;
 
+size_t convertHex(char buf[], uintptr_t value);
+
+
 template<int SIZE>
 class FixedBuffer: noncopyable
 {
@@ -128,17 +131,55 @@ public:
     self operator <<(int x)
     {
         formatInteger(x);
-        return *this
+        return *this;
     }
-    self operator <<(uint);
-    self operator <<(short);
-    self operator <<(ushort);
-    self operator <<(long);
-    self operator <<(ulong);
-    self operator <<(long long);
-    self operator <<(unsigned long long);
-
-    self operator <<(const void *);
+    self operator <<(uint x)
+    {
+        formatInteger(x);
+        return *this;
+    }
+    self operator <<(short x)
+    {
+        *this << static_cast<int>(x);
+        return *this;
+    }
+    self operator <<(ushort x)
+    {
+        *this << static_cast<uint >(x);
+        return *this;
+    }
+    self operator <<(long x)
+    {
+        formatInteger(x);
+        return *this;
+    }
+    self operator <<(ulong x)
+    {
+        formatInteger(x);
+        return *this;
+    }
+    self operator <<(long long x)
+    {
+        formatInteger(x);
+        return *this;
+    }
+    self operator <<(unsigned long long x)
+    {
+        formatInteger(x);
+        return *this;
+    }
+    self operator <<(const void * x)
+    {
+        uintptr_t i = reinterpret_cast<uintptr_t >(x);
+        if (buffer_.avail() > kMaxNumberSize)
+        {
+            char* buf = buffer_.currentPtr();
+            buf[0] = '0';
+            buf[1] = 'x';
+            int len = details::convertHex(buf, i);
+            buffer_.add(len + 2);
+        }
+    }
 
     self operator <<(float v)
     {
@@ -178,11 +219,6 @@ public:
         return *this;
     }
 
-    self operator <<(LogStream& s, const Fmt& fmt)
-    {
-        s.append(fmt.data(), fmt.length());
-        return s;
-    }
 
     void append(const char* data, int len)
     {
@@ -229,7 +265,11 @@ private:
     char buf_[32];
     int len_;
 };
-
+inline LogStream& operator << (LogStream& logStream, const Fmt& fmt)
+{
+    logStream.append(fmt.data(), fmt.length());
+    return logStream;
+}
 }
 
 
