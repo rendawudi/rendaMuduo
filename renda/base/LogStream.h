@@ -251,12 +251,12 @@ public:
     template <typename T>
     Fmt(const char* fmt, T val);
 
-    const char* data()
+    const char* data() const
     {
         return buf_;
     }
 
-    int length()
+    int length() const
     {
         return len_;
     }
